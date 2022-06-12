@@ -1,0 +1,45 @@
+application:
+  config:
+    description: Profile Default
+
+server:
+  port: 8082
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
+spring:
+  application:
+    name: credit-service
+  cloud:
+    config:
+      profile: dev
+
+  data:
+    mongodb:
+      database: 'creditdb'
+      host: 'localhost'
+      port: 27017
+
+#Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8087/eureka
+    #enabled: false
+  instance:
+    lease-expiration-duration-in-seconds: 5
+    lease-renewal-interval-in-seconds: 2
+
+#Endpoints
+config:
+  base:
+    client:
+      endpoint: http://localhost:8081/api/v1/client
+
+#Endpoints Eureka URL
+config-eureka:
+  base:
+    client:
+      endpoint: http://client-service/api/v1/client

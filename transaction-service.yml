@@ -1,0 +1,53 @@
+application:
+  config:
+    description: Profile Default
+
+server:
+  port: 8085
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
+spring:
+  application:
+    name: service-movements
+  cloud:
+    config:
+      profile: dev
+
+  data:
+    mongodb:
+      database: transactiondb
+      host: localhost
+      port: 27017
+
+#Endpoints
+config:
+  base:
+    client:
+      endpoint: http://localhost:8081/api/v1/client
+    credit:
+      endpoint: http://localhost:8082/api/v1/credit
+    account:
+      endpoint: http://localhost:8083/api/v1/account
+    
+#Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8087/eureka
+    #enabled: false
+  instance:
+    lease-expiration-duration-in-seconds: 5
+    lease-renewal-interval-in-seconds: 2
+
+#Endpoints Eureka URL
+config-eureka:
+  base:
+    client:
+      endpoint: 'http://service-customer/api/v1/client'
+    credit:
+      endpoint: 'http://service-credit/api/v1/credit'
+    account:
+      endpoint: 'http://service-account/api/v1/account'

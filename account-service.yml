@@ -1,0 +1,49 @@
+application:
+  config:
+    description: Profile Default
+
+server:
+  port: 8083
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
+spring:
+  application:
+    name: account-service
+  cloud:
+    config:
+      profile: dev
+
+  data:
+    mongodb:
+      database: accountdb
+      host: localhost
+      port: 27017
+
+#Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8087/eureka
+    #enabled: false
+  instance:
+    lease-expiration-duration-in-seconds: 5
+    lease-renewal-interval-in-seconds: 2
+
+#Endpoints
+config:
+  base:
+    client:
+      endpoint: http://localhost:8081/api/v1/client    
+    credit:
+      endpoint: http://localhost:8082/api/v1/credit
+
+#Endpoints Eureka URL
+config-eureka:
+  base:
+    client:
+      endpoint: http://service-customer/api/v1/client    
+    credit:
+      endpoint: http://service-credit/api/v1/credit
