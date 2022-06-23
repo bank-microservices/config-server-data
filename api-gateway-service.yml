@@ -1,8 +1,17 @@
-#PORT
 server:
   port: 8080
-  
-##CONFIGURATION EUREKA CLIENT
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure.include: health, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
 eureka:
   instance:
     hostname: localhost
@@ -11,99 +20,142 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka
-      
-#CONFIGURACION RECILIENCE4J
-resilience4j:
-  circuitbreaker:
-    configs:
-      defecto:
-        sliding-window-size: 6
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 20s
-        permitted-number-of-calls-in-half-open-state: 4
-        slow-call-rate-threshold: 50
-        slow-call-duration-threshold: 2s
-    instances:
-      account:
-        base-config: defecto
-      credit:
-        base-config: defecto  
-      transaction:
-        base-config: defecto  
-      report:
-        base-config: defecto  
-  timelimiter:
-    configs:
-      defecto:
-        timeout-duration: 2s
-    instances:
-      account:
-        base-config: defecto
-      credit:
-        base-config: defecto  
-      transaction:
-        base-config: defecto  
-      report:
-        base-config: defecto  
-        
-#CONFIGURATION SPRING
+
 spring:
+  application:
+    name: api-gateway-service
   main:
-    web-application-type: reactive  
+    web-application-type: reactive
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false
           lower-case-service-id: true
       routes:
-        - id: clients
+        - id: client-service
           uri: lb://client-service
           predicates:
-            - Path=/api/v1/client/** 
+            - Path=/api/v1/client/**
           filters:
-            - RewritePath=/api/ms1/(?<x>.*), /$\{x}
-        - id: accounts
+            - RewritePath=/client-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: clientService
+                fallbackUri: forward:/fallback/clientService
+
+        - id: credit-service
+          uri: lb://credit-service
+          predicates:
+            - Path=/api/v1/credit/**
+          filters:
+            - RewritePath=/credit-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: creditService
+                fallbackUri: forward:/fallback/creditService
+
+        - id: account-service
           uri: lb://account-service
           predicates:
             - Path=/api/v1/account/**
           filters:
-             - name: CircuitBreaker
-            args:
-              name: account
-           - RewritePath=/api/ms1/(?<x>.*), /$\{x}    
-        - id: credits
-          uri: lb://credit-service
-          predicates:
-           - Path=/api/v1/credit/**
-          filters:
-           - name: CircuitBreaker
-            args:
-              name: credit 
-           - RewritePath=/api/ms1/(?<x>.*), /$\{x}
-        - id: transactions
+            - RewritePath=/account-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: accountService
+                fallbackUri: forward:/fallback/accountService
+
+        - id: transaction-service
           uri: lb://transaction-service
           predicates:
-           - Path=/api/v1/transaction/**
+            - Path=/api/v1/transaction/**
           filters:
-           - name: CircuitBreaker
-            args:
-              name: transaction
-           - RewritePath=/api/ms1/(?<x>.*), /$\{x}          
-        - id: reports
+            - RewritePath=/transaction-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: transactionService
+                fallbackUri: forward:/fallback/transactionService
+
+        - id: report-service
           uri: lb://report-service
           predicates:
-           - Path=/api/v1/report/**
+            - Path=/api/v1/report/**
           filters:
-           - name: CircuitBreaker
-            args:
-              name: report
-           - RewritePath=/api/ms1/(?<x>.*), /$\{x} 
-           
-management:
-  endpoints:
-    web:
-     exposure:
-       include: "*"
-     cors:
-       allowed-origins: true
+            - RewritePath=/report-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: reportService
+                fallbackUri: forward:/fallback/reportService
+
+        - id: debit-card-service
+          uri: lb://report-service
+          predicates:
+            - Path=/api/v1/debit-card/**
+          filters:
+            - RewritePath=/debit-card-service/(?<path>.*), /$\{path}
+            - name: CircuitBreaker
+              args:
+                name: debitCardService
+                fallbackUri: forward:/fallback/debitCardService
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 10
+      permittedNumberOfCallsInHalfOpenState: 5
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 2s
+      failureRateThreshold: 10
+      eventConsumerBufferSize: 20
+      slowCallDurationThreshold: 200ms
+      slowCallRateThreshold: 30
+      recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+    shared:
+      registerHealthIndicator: true
+      slidingWindowSize: 50
+      permittedNumberOfCallsInHalfOpenState: 30
+      waitDurationInOpenState: 10s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 20
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+  instances:
+    client-service:
+      baseConfig: default
+    credit-service:
+      baseConfig: default
+    account-service:
+      baseConfig: default
+    transaction-service:
+      baseConfig: default
+    report-service:
+      baseConfig: default
+    debit-card-service:
+      baseConfig: default
+
+resilience4j.timelimiter:
+  time-limiter-aspect-order: 398
+  configs:
+    default:
+      timeoutDuration: 2s
+      cancelRunningFuture: false
+  instances:
+    client-service:
+      baseConfig: default
+    credit-service:
+      baseConfig: default
+    account-service:
+      baseConfig: default
+    transaction-service:
+      baseConfig: default
+    report-service:
+      baseConfig: default
+    debit-card-service:
+      baseConfig: default
