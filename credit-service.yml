@@ -3,9 +3,13 @@ application:
     description: Profile Default
 
 server:
-  port: 8083
+  port: 0
 
 spring:
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
   data:
     mongodb:
       host: localhost
@@ -27,3 +31,9 @@ eureka:
     fetch-registry: true
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
+
+service:
+ client:
+   uri: lb://client-service/api/v1/client
+ account:
+   uri: lb://account-service/api/v1/account
