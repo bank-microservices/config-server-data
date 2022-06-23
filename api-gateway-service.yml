@@ -89,7 +89,7 @@ spring:
                 fallbackUri: forward:/fallback/reportService
 
         - id: debit-card-service
-          uri: lb://report-service
+          uri: lb://debit-card-service
           predicates:
             - Path=/api/v1/debit-card/**
           filters:
@@ -163,11 +163,16 @@ resilience4j.timelimiter:
 resilience4j.retry:
   configs:
     default:
-      maxRetryAttempts: 2
-      waitDuration: 500
+      maxAttempts: 5
+      waitDuration: 2s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.reactive.function.client.WebClientResponseException
+        - org.springframework.web.reactive.function.client.WebClientResponseException$NotFound
+        - org.springframework.web.client.HttpClientErrorException$NotFound
         - java.io.IOException
   instances:
+    transaction-service:
+      baseConfig: default
     credit-service:
-      maxRetryAttempts: 3
+      baseConfig: default
