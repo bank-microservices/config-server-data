@@ -3,7 +3,7 @@ application:
     description: Profile Default
 
 server:
-  port: 8084
+  port: ${PORT:8084}
 
 spring:
   cloud:
@@ -12,9 +12,9 @@ spring:
         enabled: false
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: transactiondb
+      uri: ${MONGODB_CONNSTRING:mongodb://localhost:27017/transactiondb}
+      username: ${MONGO_USERNAME:admin}
+      password: ${MONGO_PASSWORD:s3cret}           
   messages:
     basename: i18n/messages
     fallback-to-system-locale: true
@@ -24,12 +24,12 @@ spring:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${HOSTNAME:localhost}
   client:
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka}
 
 service:
   client:
@@ -38,3 +38,21 @@ service:
     uri: lb://account-service/api/v1/account
   credit:
     uri: lb://credit-service/api/v1/credit
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, refresh
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    refresh:
+      enabled: true
+    restart:
+      enabled: false
+    env:
+      enabled: false
