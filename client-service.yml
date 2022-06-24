@@ -5,7 +5,7 @@ application:
 server:
   port: ${PORT:8081}
 
-spring:  
+spring:
   data:
     mongodb:
       uri: ${MONGODB_CONNSTRING:mongodb://localhost:27017/clientdb}
@@ -17,11 +17,13 @@ spring:
     use-code-as-default-message: true
   jackson:
     default-property-inclusion: NON_NULL
-    
+
 eureka:
   instance:
     hostname: ${HOSTNAME:localhost}
   client:
+    healthcheck:
+      enabled: true
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
