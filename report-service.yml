@@ -3,9 +3,13 @@ application:
     description: Profile Default
 
 server:
-  port: 8085
+  port: ${PORT:8085}
 
 spring:
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
   messages:
     basename: i18n/messages
     fallback-to-system-locale: true
@@ -15,12 +19,12 @@ spring:
     
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${HOSTNAME:localhost}
   client:
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka}
 
 service:
   client:
@@ -31,3 +35,21 @@ service:
     uri: lb://credit-service/api/v1/credit
   transaction:
     uri: lb://transaction-service/api/v1/transaction
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, refresh
+  endpoint:
+    health:
+      enabled: true
+    info:
+      enabled: true
+    refresh:
+      enabled: true
+    restart:
+      enabled: false
+    env:
+      enabled: false
