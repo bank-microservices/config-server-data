@@ -20,8 +20,8 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_CONNSTRING:mongodb://localhost:27017/accountdb}
-      username: ${MONGO_USERNAME:admin}
-      password: ${MONGO_PASSWORD:s3cret}      
+      # username: ${MONGO_USERNAME:admin}
+      # password: ${MONGO_PASSWORD:s3cret}      
 
 eureka:
   instance:
